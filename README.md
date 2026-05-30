@@ -49,3 +49,7 @@ npm run dev
 
 - これは解像度を上げる道具であり、意思決定の代行ではない
 - 選択肢はこちらの前提を相手に乗せる行為でもある。フレーミングの偏りに注意
+
+## Credit
+
+Designed & built by **Kenta Kuzuhara** — [@kuzzken](https://x.com/kuzzken)
