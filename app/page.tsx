@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AskQuestion, BriefDoc, InterviewAction } from "@/lib/interview";
+import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompt";
 
 type Phase = "intake" | "interviewing" | "done";
 type LogItem = { header: string; question: string; answer: string };
@@ -37,7 +38,11 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [msgI, setMsgI] = useState(0);
+  const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM_PROMPT);
+  const [showPrompt, setShowPrompt] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  const promptEdited = systemPrompt.trim() !== DEFAULT_SYSTEM_PROMPT.trim();
 
   // ローディング中はステータス文言をゆっくり切り替える
   useEffect(() => {
@@ -59,7 +64,7 @@ export default function Page() {
       const res = await fetch("/api/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, system: systemPrompt }),
         signal: controller.signal,
       });
       const data = await res.json();
@@ -172,6 +177,14 @@ export default function Page() {
 
   return (
     <div className="app">
+      <button
+        className={`prompt-link${promptEdited ? " edited" : ""}`}
+        onClick={() => setShowPrompt(true)}
+      >
+        プロンプトを{phase === "intake" ? "確認・編集" : "確認"}
+        {promptEdited && <span className="dot" aria-label="編集済み" />}
+      </button>
+
       <header className="hero">
         <h1>Brief Interviewer</h1>
         <p>ざっくりブリーフを貼ると、AIが選択式でヒアリングし、構造化ブリーフに仕上げます。</p>
@@ -287,6 +300,69 @@ export default function Page() {
           @kuzzken
         </a>
       </footer>
+
+      {showPrompt && (
+        <PromptEditor
+          value={systemPrompt}
+          locked={phase !== "intake"}
+          onClose={() => setShowPrompt(false)}
+          onSave={(v) => {
+            setSystemPrompt(v);
+            setShowPrompt(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── インタビュー方針（system プロンプト）の確認・編集 ──
+function PromptEditor({
+  value,
+  locked,
+  onClose,
+  onSave,
+}: {
+  value: string;
+  locked: boolean;
+  onClose: () => void;
+  onSave: (v: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  const dirty = draft !== value;
+  const isDefault = draft.trim() === DEFAULT_SYSTEM_PROMPT.trim();
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <p className="eyebrow" style={{ marginBottom: 10 }}>
+          Interview Prompt — ヒアリングの方針
+        </p>
+        <p className="muted" style={{ marginTop: 0, marginBottom: 16 }}>
+          AI がどう質問を組み立てるかの指示です。
+          {locked
+            ? "セッション中のため閲覧のみ（変更は次の応答から反映）。"
+            : "開始前に自由に編集できます。"}
+        </p>
+        <textarea
+          className="prompt-area"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+        <div className="row" style={{ marginTop: 16 }}>
+          <button
+            onClick={() => setDraft(DEFAULT_SYSTEM_PROMPT)}
+            disabled={isDefault}
+          >
+            デフォルトに戻す
+          </button>
+          <span className="spacer" />
+          <button onClick={onClose}>キャンセル</button>
+          <button className="primary" onClick={() => onSave(draft)} disabled={!dirty}>
+            保存して使う
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

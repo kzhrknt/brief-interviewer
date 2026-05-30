@@ -18,14 +18,21 @@ export async function POST(req: Request) {
   }
 
   let messages: Anthropic.MessageParam[];
+  let systemRaw: unknown;
   try {
-    ({ messages } = await req.json());
+    ({ messages, system: systemRaw } = await req.json());
   } catch {
     return Response.json({ error: "invalid JSON body" }, { status: 400 });
   }
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: "messages is required" }, { status: 400 });
   }
+
+  // UI で編集されたプロンプトがあれば優先（無ければ既定）。暴走防止に上限だけ設ける。
+  const system =
+    typeof systemRaw === "string" && systemRaw.trim()
+      ? systemRaw.slice(0, 20000)
+      : SYSTEM_PROMPT;
 
   const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
 
@@ -36,7 +43,7 @@ export async function POST(req: Request) {
       thinking: { type: "adaptive" },
       output_config: { effort: "medium" },
       system: [
-        { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
+        { type: "text", text: system, cache_control: { type: "ephemeral" } },
       ],
       tools: [ASK_TOOL, SUBMIT_TOOL],
       messages,

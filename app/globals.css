@@ -369,6 +369,72 @@ button.primary:disabled {
 .muted { color: var(--muted); font-size: 13px; letter-spacing: 0.02em; }
 .err { color: #b4564d; font-size: 13px; }
 
+/* ── 右上のプロンプト編集リンク ── */
+.app { position: relative; }
+.prompt-link {
+  position: absolute;
+  top: 22px;
+  right: 28px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--line);
+  padding: 8px 15px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.prompt-link:hover { color: var(--ink); border-color: var(--ink); }
+.prompt-link .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tint-line);
+}
+@media (max-width: 880px) {
+  .prompt-link { top: 14px; right: 16px; }
+}
+
+/* ── プロンプト編集モーダル ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(30, 34, 46, 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fade-in 0.3s ease both;
+}
+.modal {
+  width: min(760px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--paper-solid);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 32px 34px;
+  box-shadow: 0 30px 80px -30px rgba(30, 40, 70, 0.5);
+  animation: rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@media (max-width: 880px) { .modal { padding: 24px 20px; } }
+.prompt-area {
+  min-height: 360px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  background: rgba(255, 255, 255, 0.8);
+}
+
 /* ── クレジット ── */
 .credit {
   grid-column: 1 / -1;
